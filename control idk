@@ -1,0 +1,82 @@
+#region VEXcode Generated Robot Configuration
+from vex import *
+import urandom
+import math
+
+# Brain should be defined by default
+brain=Brain()
+
+# Robot configuration code
+
+
+# wait for rotation sensor to fully initialize
+wait(30, MSEC)
+
+
+# Make random actually random
+def initializeRandomSeed():
+    wait(100, MSEC)
+    random = brain.battery.voltage(MV) + brain.battery.current(CurrentUnits.AMP) * 100 + brain.timer.system_high_res()
+    urandom.seed(int(random))
+      
+# Set random seed 
+initializeRandomSeed()
+
+
+def play_vexcode_sound(sound_name):
+    # Helper to make playing sounds from the V5 in VEXcode easier and
+    # keeps the code cleaner by making it clear what is happening.
+    print("VEXPlaySound:" + sound_name)
+    wait(5, MSEC)
+
+# add a small delay to make sure we don't print in the middle of the REPL header
+wait(200, MSEC)
+# clear the console to make sure we don't have the REPL in the console
+print("\033[2J")
+
+#endregion VEXcode Generated Robot Configuration
+
+# create drivetrain 
+motor1_L = Motor(Ports.PORT1)
+motor2_L = Motor(Ports.PORT2)
+motor3_R = Motor(Ports.PORT3)
+motor4_R = Motor(Ports.PORT4)
+leftMotors = (motor1_L, motor2_L)
+rightMotors = (motor3_R, motor4_R)
+drive = DriveTrain(motor1_L, motor3_R)
+
+# initialize controller 
+controller_1 = Controller(PRIMARY)
+
+# axis1 = horizontal movement 
+def axis1_changed(drivetrain):
+    while True: 
+        if controller_1.axis1.position() > 5:
+            drivetrain.set_turn_velocity(controller_1.axis1.position(), PERCENT)
+            drivetrain.turn(RIGHT)
+        elif controller_1.axis1.position() < 5: 
+            drivetrain.set_turn_velocity(abs(controller_1.axis1.position()), PERCENT)
+            drivetrain.turn(LEFT)
+        else: 
+            drivetrain.set_drive_velocity(0, PERCENT)
+            drivetrain.stop()
+            break
+
+# axis2 = vertical movement 
+def axis2_changed(drivetrain):
+    while True: 
+        if controller_1.axis2.position() > 5:
+            drivetrain.set_drive_velocity(controller_1.axis2.position(), PERCENT)
+            drivetrain.drive(FORWARD)
+        elif controller_1.axis2.position() < 5: 
+            drivetrain.set_drive_velocity(abs(controller_1.axis2.position()), PERCENT)
+            drivetrain.drive(REVERSE)
+        else: 
+            drivetrain.set_drive_velocity(0, PERCENT)
+            drivetrain.stop()
+            break
+
+# controls (axis 1 and 2)
+while True: 
+    controller_1.axis1.changed(axis1_changed(drive)) 
+    controller_1.axis2.changed(axis2_changed(drive))
